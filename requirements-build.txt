@@ -1,1 +1,6 @@
-platformio==6.1.19
+-c requirements-constraints.txt
+platformio==6.2.0
+littlefs-python==0.19.0
+fatfs-ng==0.1.15
+esptool==5.2.0
+zopfli==0.4.3

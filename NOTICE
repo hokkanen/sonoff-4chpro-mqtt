@@ -15,6 +15,23 @@ Its bundled libraries retain their individual licenses and copyright notices in
 the integrity-checked upstream source archive; this repository does not replace
 those notices or claim ownership of those libraries.
 
+Modified by this project on 2026-10-15:
+- lib/default/TasmotaPubSub/src/PubSubClient.cpp and PubSubClient.h:
+  expose retained-delivery metadata only during an inbound callback.
+- tasmota/include/tasmota_configurations.h: disable discovery and alternate serial
+  provisioning in the fixed profile.
+- tasmota/tasmota.ino: initialize inactive pins and the fixed board before GPIO
+  setup; include the lease gate.
+- tasmota/tasmota_support/support_command.ino: make native commands maintenance
+  OFF and reject competing configuration/activation paths.
+- tasmota/tasmota_support/support_tasmota.ino: route native power through the gate,
+  preserve emergency OFF and stop leases before OTA.
+- tasmota/tasmota_support/support_wifi.ino: stop leases before restart.
+- tasmota/tasmota_xdrv_driver/xdrv_01_9_webserver.ino: stop leases before uploads.
+- tasmota/tasmota_xdrv_driver/xdrv_02_9_mqtt.ino: consume the dedicated protocol
+  before native logging/dispatch and reconcile MQTT lifecycle transitions.
+The focused patch and original upstream copyright/license notices are preserved.
+
 TasmotaPubSub / PubSubClient
 The patch adds inbound retained-delivery metadata access to the Tasmota-modified
 PubSubClient. The original PubSubClient is Copyright (c) 2008-2020 Nick O'Leary,
@@ -22,19 +39,46 @@ under the MIT License; its full notice is retained in the upstream archive.
 https://github.com/knolleary/pubsubclient
 
 Build dependencies
-PlatformIO Core 6.1.19 is installed separately under its Apache-2.0 license.
-https://github.com/platformio/platformio-core/tree/v6.1.19
+PlatformIO Core 6.2.0 is installed separately under its Apache-2.0 license.
+https://github.com/platformio/platformio-core/tree/v6.2.0
 The pinned Tasmota source selects its ESP8266 platform, Arduino framework and
 toolchain. Their own licenses and notices remain in those dependencies. Python,
 GCC, patch and optional sanitizer runtimes are separately installed host tools.
 
+ESP8266 framework and platform sources
+dependencies.lock.json pins the exact Tasmota ESP8266 platform 2026.04.00 and
+Arduino framework 2.7.8 source/package archives by size and SHA-256. The build uses
+those verified archives and includes them unchanged with firmware. The framework
+retains its LGPL-2.1 license and component notices, including eboot (BSD-3-Clause),
+BearSSL (MIT), libb64, umm_malloc, LittleFS, SdFat and the Espressif SDK license.
+Some SDK components are supplied upstream as binary libraries under their own
+ESP8266-specific license; they are not represented as project-authored source.
+The SDK also supplies prebuilt C/math libraries; these are distinct from the
+compiler executable and retain their upstream package conditions. The framework's
+lwIP glue, options, patches and BSD notice are paired with the exact official
+lwIP 2.1.2 source ZIP recorded in dependencies.lock.json.
+Full notices stay at their original paths inside the framework archive. The
+platform build scripts retain their Apache-2.0 notice. See
+docs/dependencies.md for provenance, distribution and reproducibility boundaries.
+The project's tools/patches/platform-espressif8266-2026.04.00.patch modifies
+platform.py and builder/penv_setup.py on 2026-10-15 to keep Core in charge of SCons
+and reuse the constrained host Python environment. Both modified files carry
+dated notices and retain their Apache headers. The derived platform.json version
+and description identify that dated patch variant. The original source ZIP stays
+unchanged in the distribution; the matching project archive supplies the patch
+and derivation recipe.
+The linked GCC target runtimes carry GPL terms with the GCC Runtime Library
+Exception 3.1; the original GCC 4.8.2 exception text is preserved at
+licenses/GCC-RUNTIME-EXCEPTION-3.1.txt in the matching project source archive.
+
 Corresponding source
-tools/build.py preserves a source-only project archive and the exact verified
-Tasmota source archive alongside every firmware output. Together they contain
-the editable modifications, upstream source, build recipe and dependency pins.
-Distribute both source archives, their manifests, LICENSE and NOTICE with binary
-releases, and retain applicable dependency notices. A link to this repository
-alone is not a substitute for supplying the matching source bundle.
+tools/build.py preserves the source-only project archive, exact Tasmota archive,
+and exact ESP8266 framework/platform and lwIP source archives alongside firmware.
+Together they preserve editable modifications, upstream sources, build scripts,
+dependency pins and original third-party notices. Distribute all five archives,
+their manifests, LICENSE and NOTICE with binary releases. A link to this repository
+alone is not a substitute for supplying the matching source bundle. The GPL's
+Corresponding Source requirement is described in LICENSE sections 1 and 6.
 
 SONOFF, Tasmota, Espressif and other product names belong to their respective
 owners. This independent project does not imply their endorsement or electrical

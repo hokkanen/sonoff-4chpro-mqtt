@@ -1,0 +1,55 @@
+{
+  "archives": [
+    {
+      "id": "platform",
+      "package": "espressif8266",
+      "version": "2026.04.00",
+      "file": "platform-espressif8266-2026.04.00.zip",
+      "url": "https://github.com/tasmota/platform-espressif8266/releases/download/2026.04.00/platform-espressif8266.zip",
+      "sha256": "e54182080f80519648e6c63e4642b006a797aa557137ad1ee3ee241856b12928",
+      "bytes": 84398,
+      "root": "platform-espressif8266-2026.04.00",
+      "metadata": "platform.json",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "id": "framework",
+      "package": "framework-arduinoespressif8266",
+      "version": "2.7.8",
+      "file": "framework-esp8266-2.7.8.zip",
+      "url": "https://github.com/tasmota/Arduino/releases/download/2.7.8/esp8266-2.7.8.zip",
+      "sha256": "2ff7e696579e81e9bb65298e8400c241fb89a3e8a30b16070487168e0f52ecc2",
+      "bytes": 25795055,
+      "root": "Arduino-2.7.8",
+      "metadata": "package.json",
+      "notices": [
+        "LICENSE",
+        "bootloaders/eboot/LICENSE",
+        "cores/esp8266/libb64/LICENSE",
+        "cores/esp8266/umm_malloc/LICENSE",
+        "cores/esp8266/umm_malloc/dbglog/LICENSE",
+        "libraries/ESP8266SdFat/LICENSE.md",
+        "libraries/GDBStub/License",
+        "libraries/LittleFS/lib/littlefs/LICENSE.md",
+        "tools/sdk/License",
+        "tools/sdk/ssl/bearssl/LICENSE.txt"
+      ]
+    },
+    {
+      "id": "lwip-source",
+      "package": "lwip",
+      "version": "2.1.2",
+      "file": "lwip-2.1.2.zip",
+      "url": "https://download-mirror.savannah.gnu.org/releases/lwip/lwip-2.1.2.zip",
+      "sha256": "5e0ae1887bef5b27e35f92636a3e52f3bc67f1944f136d6c79d18e5d972f76b0",
+      "bytes": 4304344,
+      "root": "lwip-2.1.2",
+      "metadata": "src/include/lwip/init.h",
+      "notices": [
+        "COPYING"
+      ]
+    }
+  ]
+}

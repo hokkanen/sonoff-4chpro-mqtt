@@ -1,0 +1,130 @@
+--- a/platform.py
++++ b/platform.py
+@@ -1,4 +1,5 @@
+ # Copyright 2014-present PlatformIO <contact@platformio.org>
++# Modified 2026-10-15 by sonoff-4chpro-mqtt: Core owns its SCons package.
+ #
+ # Licensed under the Apache License, Version 2.0 (the "License");
+ # you may not use this file except in compliance with the License.
+@@ -74,7 +75,6 @@
+ 
+ COMMON_PACKAGES = [
+     "tool-esptoolpy",
+-    "tool-scons",
+     "contrib-piohome"
+ ]
+ 
+--- a/builder/penv_setup.py
++++ b/builder/penv_setup.py
+@@ -1,4 +1,5 @@
+ # Copyright 2014-present PlatformIO <contact@platformio.org>
++# Modified 2026-10-15 by sonoff-4chpro-mqtt: reuse reviewed host Python.
+ #
+ # Licensed under the Apache License, Version 2.0 (the "License");
+ # you may not use this file except in compliance with the License.
+@@ -107,7 +108,7 @@
+     return False
+ 
+ 
+-has_network = has_internet_connection() or github_actions
++has_network = False  # No unused import-time network probe in this build recipe.
+ 
+ 
+ def get_executable_path(penv_dir, executable_name):
+@@ -610,71 +611,32 @@
+ 
+ 
+ def _setup_python_environment_core(env, platform, platformio_dir, should_install_esptool=True):
+-    """
+-    Core Python environment setup logic shared by both SCons and minimal versions.
+-    
+-    Args:
+-        env: SCons environment object (None for minimal setup)
+-        platform: PlatformIO platform object
+-        platformio_dir (str): Path to PlatformIO core directory
+-        should_install_esptool (bool): Whether to install esptool (default: True)
+-    
+-    Returns:
+-        tuple[str, str]: (Path to penv Python executable, Path to esptool script)
+-    """
+-    penv_dir = str(Path(platformio_dir) / "penv")
+-
+-    # Determine uv cache directory inside .platformio/.cache
+-    uv_cache_dir = str(Path(platformio_dir) / ".cache" / "uv")
+-    
+-    # Create virtual environment if not present
++    """Use the one reviewed host environment; never bootstrap or import a penv.
++
++    Modified 2026-10-15 by sonoff-4chpro-mqtt. Both platform setup entry
++    points call this adapter. Version mismatch fails before any build work.
++    """
++    from importlib.metadata import PackageNotFoundError, version
++    import sysconfig
++
++    for package, expected in (("platformio", "6.2.0"), ("starlette", "1.8.0"),
++                              ("pip", "26.2.1"), ("esptool", "5.2.0")):
++        try:
++            installed = version(package)
++        except PackageNotFoundError:
++            raise SystemExit("Missing reviewed build dependency; install requirements-build.txt")
++        if installed != expected:
++            raise SystemExit("Build dependency mismatch; install requirements-build.txt")
++
++    python_exe = sys.executable
++    executable = "esptool.exe" if IS_WINDOWS else "esptool"
++    esptool_path = Path(sysconfig.get_path("scripts")) / executable
++    if not esptool_path.is_file():
++        raise SystemExit("Reviewed host esptool entry point is missing")
+     if env is not None:
+-        # SCons version
+-        used_uv_executable = setup_pipenv_in_package(env, penv_dir)
+-    else:
+-        # Minimal version
+-        used_uv_executable = _setup_pipenv_minimal(penv_dir)
+-    
+-    # Set Python executable path
+-    penv_python = get_executable_path(penv_dir, "python")
+-    
+-    # Update SCons environment if available
+-    if env is not None:
+-        env.Replace(PYTHONEXE=penv_python)
+-    
+-    # check for python binary, exit with error when not found
+-    if not os.path.isfile(penv_python):
+-        sys.stderr.write(f"Error: Python executable not found: {penv_python}\n")
+-        sys.exit(1)
+-    
+-    # Setup Python module search paths
+-    setup_python_paths(penv_dir)
+-    
+-    # Set executable paths from tools
+-    esptool_binary_path = get_executable_path(penv_dir, "esptool")
+-    uv_executable = get_executable_path(penv_dir, "uv")
+-
+-    # Install required Python dependencies for platform
+-    if has_network:
+-        if not install_python_deps(penv_python, used_uv_executable, uv_cache_dir):
+-            sys.stderr.write("Error: Failed to install Python dependencies into penv\n")
+-            sys.exit(1)
+-    else:
+-        print("Warning: No internet connection detected, Python dependency check will be skipped.")
+-
+-    # Install esptool package if required
+-    if should_install_esptool:
+-        if env is not None:
+-            # SCons version
+-            install_esptool(env, platform, penv_python, uv_executable, uv_cache_dir)
+-        else:
+-            # Minimal setup - install esptool from tool package
+-            _install_esptool_from_tl_install(platform, penv_python, uv_executable, uv_cache_dir)
+-
+-    # Setup certifi environment variables
+-    _setup_certifi_env(env, penv_python)
+-
+-    return penv_python, esptool_binary_path
++        env.Replace(PYTHONEXE=python_exe)
++    _setup_certifi_env(env, python_exe)
++    return python_exe, str(esptool_path)
+ 
+ 
+ def _setup_pipenv_minimal(penv_dir):

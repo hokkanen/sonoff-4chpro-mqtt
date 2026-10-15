@@ -1,33 +1,79 @@
 # Local release preparation
 
-Version **0.1.0** is the initial candidate. A version edit, passing test or local
-commit does not publish a release or qualify connected loads. The protocol remains
-`v:1` independently of the project and upstream Tasmota versions.
+Version **0.1.0** is the initial candidate. Project version, protocol `v:1` and
+upstream Tasmota version are separate identifiers. Local preparation does not
+publish a release, authorize flashing or qualify connected loads.
 
-1. Review source, overlay, patch, schemas, examples, documentation and notices
-   together. Record validation with the exact tested image; do not relabel older
-   live results as a later deployment. Update [the change log](../CHANGELOG.md).
-2. Run `tools/check.py` and a real pinned ESP8285 build using external working and
-   output directories. Preserve the firmware, SHA-256 manifest and corresponding
-   editable source/overlay/patch/build metadata together.
-3. Independently audit actuation, deadlines, parsing and release behavior. Check
-   privacy manually across the intended tree, staged index and retained history.
-   Keep actual addresses, device identifiers, credentials, backups, live tokens,
-   captures and private installation paths outside the repository.
-4. Use `tools/check_release.py --staged` for the intended index and its `--archive`
-   mode for a prepared distribution. Pattern scanning supplements manual review;
-   it cannot establish privacy or electrical correctness by itself.
-5. Review the exact source and generated archive contents before an authorized
-   commit/publication. Include source, build metadata, licenses and notices with
-   distributed firmware; retain the corresponding pinned upstream source.
+## Review and checks
+
+Review the firmware overlay/patch, parser/core/driver, schemas, examples,
+operating/security documents, dependency locks and notices together. Keep earlier
+live evidence tied to its tested image. Update [release notes](../RELEASE_NOTES.md),
+[the change log](../CHANGELOG.md) and [validation status](status.md).
+
+Run `tools/check.py --sanitizers` and a real ESP8285 build with external work,
+dependency-cache and output directories. Preserve the exact project, Tasmota,
+platform, framework and lwIP source archives, their notices, firmware and manifest.
+Read [dependency provenance](dependencies.md) for the source and toolchain limits.
+
+Use independent reviewers for firmware safety paths and public source/history/
+artifact privacy. No scanner can prove absence of private data by itself. Check
+all stored Git objects, including unreachable objects, as well as the intended
+index and final distribution. A clean worktree alone is insufficient.
+
+## Public attribution
+
+Git author/committer names and emails are public when history is pushed. Keep only
+explicitly approved attribution. The default neutral identity uses
+`contributors@example.invalid`; an externally stored JSON allowlist can approve
+exact existing name/email pairs. It has the shape:
+
+```json
+[{"name":"Project contributors","email":"contributors@example.invalid"}]
+```
+
+Keep a real approval file outside every Git repository. Pass its location through
+`--approved-authors`; never add actual names/emails to public test fixtures or
+source exemptions. Approval applies to Git identity fields, not arbitrary personal
+content elsewhere. Do not rewrite attribution without the author's informed
+approval; a permitted identity does not grant permission to publish secrets.
+
+## Prepare the exact committed candidate
+
+Set the variables below to suitable external paths first. The approval file is
+optional when all attribution uses the neutral default. Commit only explicitly
+reviewed files before preparing a publication candidate.
+
+```sh
+python3 tools/check.py --sanitizers
+python3 tools/check_release.py --staged
+python3 tools/check_release.py --history --require-clean --approved-authors "$SONOFF_APPROVED_AUTHORS"
+python3 tools/check_release.py --build-dir "$SONOFF_BUILD_DIR" --match-working-tree
+python3 tools/check_release.py --archive "$SONOFF_BUILD_DIR/project-source.tar.gz"
+python3 tools/prepare_release.py --build-dir "$SONOFF_BUILD_DIR" --output-dir "$SONOFF_RELEASE_PARENT" --approved-authors "$SONOFF_APPROVED_AUTHORS"
+python3 tools/check_release.py --release-dir "$SONOFF_RELEASE_PARENT/sonoff-4chpro-mqtt-0.1.0" --release-archive "$SONOFF_RELEASE_PARENT/sonoff-4chpro-mqtt-0.1.0.tar.gz" --approved-authors "$SONOFF_APPROVED_AUTHORS"
+```
+
+The prepare command creates a versioned local candidate and checksums without
+creating a Git tag, remote, upload or GitHub release. Use the command's `--help`
+for its exact archive/output layout and final `--release-dir` verification. Keep
+binary and matching editable source/notices available together. Do not upload
+private commissioning backups, logs, live capabilities or approval files.
+
+Review the exact final index, retained history, release metadata, archive members
+and checksums before publication. Confirm that generated files contain no operator
+paths, installation settings or device identifiers. Checksums identify bytes; they
+are not a maintainer signature or evidence of electrical safety.
+
+## Publication and recovery boundaries
 
 Local preparation may create reviewed local commits. Publishing, pushing, marking
 a release, flashing and connected-load commissioning require authorization for
-their actual effects; a passing check or local commit does not authorize them.
-Do not publish private commissioning artifacts or pretend hosted CI ran before
-an authorized upload. Verify public links and the hosted workflow after publication.
+their actual effects. A passing local check is not proof that hosted CI ran.
+After an authorized publication, verify the public artifact downloads, workflow,
+source availability and vulnerability-reporting channel on GitHub.
 
-An installed update must preserve the safe inactive board profile. A rollback to
-stock Tasmota removes the custom gate and needs a fresh operational safety review.
-Keep verified original and pre-change backups privately recoverable; do not ship
-them in the source distribution.
+An update must preserve inactive startup and the fixed board profile. A rollback
+to stock Tasmota removes the custom gate. Retain verified original/pre-change
+backups privately; never ship installation firmware/settings dumps with a release.
+Recommission affected behavior before using changed actuation code with real loads.

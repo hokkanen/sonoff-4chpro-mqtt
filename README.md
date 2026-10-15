@@ -53,13 +53,16 @@ retain master/standby fencing and durable release obligations; see
 - [Protocol and JSON schemas](docs/protocol.md), [synthetic examples](examples/README.md)
 - [Development and offline checks](docs/development.md)
 - [Release preparation](docs/releasing.md), [change log](CHANGELOG.md)
+- [Security boundaries](SECURITY.md), [release notes](RELEASE_NOTES.md)
+- [Dependency sources and notices](docs/dependencies.md)
 
 The build tooling verifies pinned upstream source and keeps build/output storage
 outside the checkout. It does not flash hardware. Installation credentials,
 backups, logs and actual device/network identifiers must also remain outside Git.
 
 Install the pinned [check](requirements-check.txt) and [build](requirements-build.txt)
-requirements in an environment outside the checkout. Then run:
+requirements in a **Python 3.11 or newer** environment outside the checkout.
+Linux builds also require a C++ compiler, Git and `patch`. Then run:
 
 ```sh
 python3 tools/check.py

@@ -17,8 +17,17 @@ Optional `--archive` and `--platformio` select an existing pinned archive/tool.
 The tool does not flash, configure a broker or contact devices. Read its `--help`
 for the installed command's exact options.
 
+The platform and framework archives in `dependencies.lock.json` are also verified
+before use, selected as local PlatformIO inputs and preserved with firmware.
+The build applies the separately reviewed platform-only compatibility patch in
+the project source, uses the single constrained host environment and selects the
+derived platform directory directly. It does not bootstrap an older nested Core.
+`--dependency-cache` can select their external cache. `--no-download` requires the
+source archives to be present; it does not by itself make PlatformIO's host-tool
+installation air-gapped. See [dependency provenance](dependencies.md).
+
 Install [requirements-check.txt](../requirements-check.txt) and
-[requirements-build.txt](../requirements-build.txt) in an external Python
+[requirements-build.txt](../requirements-build.txt) in an external Python 3.11+
 environment. The checked-in requirements pin the validator and PlatformIO;
 do not install a tool environment inside the checkout. `--platformio` can select
 that environment's executable explicitly.
@@ -31,6 +40,9 @@ Core tests use adversarial fake monotonic clocks and verify outcomes independent
 of implementation arithmetic. Parser tests cover malformed bounded wire inputs,
 including Arduino macro compatibility. A real ESP8285 build remains required for
 firmware changes; portable compilation cannot prove embedded compatibility.
+An additional host harness includes the actual driver with synthetic SDK/GPIO,
+clock and MQTT shims. It checks callback/apply races and response behavior, without
+claiming actual SDK scheduling, radio behavior or mechanical contact sensing.
 Source review must inspect every ON path, OFF timing, startup, timer races,
 notification/readback consistency and MQTT lifecycle hooks.
 
@@ -39,3 +51,7 @@ core/parser. A release timer cannot promise hard realtime behavior under every
 blocked firmware or hardware fault. Observe actual timing and preserve its limits
 in [validation status](status.md), rather than inventing a conservative timing
 allowance or treating a successful command as physical proof.
+
+`tools/check_docs.py` checks local Markdown targets/anchors and current project
+metadata. The release/history checks additionally review Git object paths and
+metadata; see [the local release procedure](releasing.md).

@@ -12,6 +12,14 @@
   physical contact evidence.
 - Add portable/parser tests, pinned build tooling, synthetic schemas/examples and
   operating/integration documentation. ST-MQ host integration remains future work.
+- Add actual-driver callback/race regression tests and first-public-release privacy
+  checks across source, index, all Git objects and publication artifacts.
+- Preserve the exact platform/framework source archives, original notices and
+  dated modification inventory with binary distributions.
+- Constrain Python dependencies, pin CI actions by commit, reject contaminated
+  archives and prepare checksummed versioned releases without publishing them.
+- Document trusted-network security boundaries and the limits of prior bench
+  evidence separately from offline release verification.
 
 This entry records a candidate. Publication and connected-load qualification are
 not claimed; see [validation status](docs/status.md).

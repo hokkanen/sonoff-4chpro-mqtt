@@ -23,6 +23,32 @@ setup, fixed mapping, deadline-preserving timer arming, atomic output applicatio
 sticky expiry retirement, reconnection generation, retained-message handling and
 reply/readback consistency. These checks do not substitute for physical testing.
 
+## First public-release audit
+
+The first public-release review adds **5,963 actual-driver host assertions** under
+ASan/UBSan and optimized compilation. The harness includes the checked-in driver
+with synthetic GPIO, timer, clock and MQTT replacements. It covers callback/apply
+deadline races, all masks, maximum expiry, rollover, unchanged-output renewal,
+stale callbacks, faults, publication failure and the complete JSON wire lifecycle.
+This models driver behavior; it does not establish real SDK scheduling or contact
+timing. The audit found no confirmed blocking firmware defect and changed no
+actuation implementation.
+
+Release preparation additionally checks source, the index, all stored Git objects,
+approved Git attribution, local Markdown links, schemas, strict archives and exact
+publication-artifact contents. It preserves the platform/framework source and
+notices as well as project/Tasmota source. See [release preparation](releasing.md),
+[dependency provenance](dependencies.md) and [security boundaries](../SECURITY.md).
+Approval of existing Git author attribution does not permit personal data or
+installation secrets in source, messages, paths or artifacts.
+
+This release audit performs no device commands, deployment or physical testing.
+Earlier bench results below remain scoped to their original installed images.
+The release bundle's source/build metadata and checksums identify the actual
+candidate; local validation does not imply publication or a successful hosted CI
+run. Host-tool version constraints are separate from archive integrity and do not
+claim every download is hermetic or vulnerability-free.
+
 ## Unloaded bench observations
 
 The initial preparation used a Sonoff 4CH Pro R3 without connected external loads.
