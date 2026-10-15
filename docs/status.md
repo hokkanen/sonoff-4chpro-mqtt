@@ -32,19 +32,29 @@ The coordinating commissioning run reported these observations on 2026-10-15:
 | --- | --- |
 | Four independent physical relay pulses | Passed under the preceding stock Tasmota commissioning image; selected contacts switched and the others stayed OFF. |
 | Inactive contact baseline | Each relay's unloaded COM–NC/COM–NO baseline was checked separately. |
+| Built and installed custom image | A real DOUT/40 MHz/1 MB ESP8285 build succeeded; device sketch checksum matched its reviewed binary. A fresh build through this repository also succeeded with matching actuation source. |
 | Custom short local expiry and fixed-end checks | Passed through the custom protocol and live GPIO feedback. This is not continuous mechanical contact sensing. |
-| Owner/token/generation/end fencing and replay | Wrong owner/token/generation/end and retired-treatment requests were rejected in live checks. Device/sequence rejection also has portable/source evidence; separate live coverage is not claimed here. |
+| Owner/token/generation/end fencing and replay | Wrong owner/token/generation/end and retired-treatment requests were rejected in live checks. Additional device/sequence checks are recorded below. |
 | Known broker disconnect | Custom lease released; reconnect required fresh generation. |
 | Warm restart | Custom firmware returned inactive without reacquisition. |
 | Wi-Fi recovery | Reconnected while already OFF. Active-lease Wi-Fi interruption remains a separate scenario. |
-| Full 900-second local expiry | Running; result pending coordinating run. |
-| Custom-firmware cold startup | Pending coordinating run. |
-| Physical button behavior under custom firmware | Pending coordinating run. |
+| Physical identity and active sequence checks | Wrong-device read/activation and stale-sequence renewal were rejected live; a later valid sequence and confirmed release succeeded. |
+| Full 900-second local expiry | Passed with the controlling client disconnected, zero renewal/polling commands and 30 fresh passive telemetry reports. Unsolicited expired/OFF state carried the original device deadline; a correlated follow-up read confirmed OFF. |
+| Custom-firmware cold startup | Passed after the owner disconnected 12 V for 10 seconds and restored normal power. Passive telemetry showed a new connection generation and 11-second uptime with all four outputs OFF; fresh protocol readback and installed-image checksum matched. |
+| Physical button behavior under custom firmware | The owner briefly pressed each front button separately and confirmed no relay clicks or contact changes. |
+| Final custom-firmware contact positions | The owner confirmed all four COM–NC contacts closed and COM–NO contacts open before and after the cold boot; fresh GPIO readback also confirmed all four OFF. |
 
-The final build manifest, installed-image identity, full-duration expiry and final
-inactive state must be recorded by the coordinating run before declaring device
-preparation complete. Do not relabel observations from the preceding firmware as
-tests of a later image.
+An earlier full-duration attempt was invalidated by an MQTT reconnection and an
+observer that did not record its connection lifecycle. The successful repeat
+recorded observer lifecycle, passive heartbeat freshness and all control traffic.
+Transient reply delay/reconnection also caused supplemental checks to stop safely;
+fresh challenges and a new isolated run completed the checks. Maintenance queries
+intentionally terminate a lease and must not overlap an expiry/renewal experiment.
+
+The unloaded device preparation is complete within these recorded checks. Build
+timestamps may change image bytes; the exact installed image and the later
+repository build are separate artifacts. Do not relabel observations from the
+preceding firmware as tests of a later image.
 
 ## Remaining installation limits
 
@@ -52,6 +62,8 @@ No external loads were controlled. No heating circuit was assigned or enabled.
 Mechanical contact observations are discrete commissioning evidence; the firmware
 has no independent continuous contact sensor. Valve travel, water flow, electrical
 installation safety and delivered heat remain unqualified.
+RF remote activation paths were not separately exercised. Older Pro/R2 DIP-switch
+instructions were not applied to the tested R3 board.
 
 The future ST-MQ adapter, its durable release behavior and master/standby handover
 are not implemented or tested here. Raspberry Pi/Linux host tests and a successful

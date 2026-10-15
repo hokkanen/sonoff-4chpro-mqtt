@@ -24,7 +24,7 @@ do not install a tool environment inside the checkout. `--platformio` can select
 that environment's executable explicitly.
 
 `tools/check.py` runs offline host tests and structural/privacy checks. The tests
-stage an ephemeral upstream-shaped include tree outside the repository. Offline
+compile the checked-in core and parser into an external temporary directory. Offline
 checks must not use real hardware, network credentials or live MQTT captures.
 
 Core tests use adversarial fake monotonic clocks and verify outcomes independently

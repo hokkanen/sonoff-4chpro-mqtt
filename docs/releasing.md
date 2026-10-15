@@ -21,9 +21,10 @@ commit does not publish a release or qualify connected loads. The protocol remai
    commit/publication. Include source, build metadata, licenses and notices with
    distributed firmware; retain the corresponding pinned upstream source.
 
-The owner separately authorizes committing, publishing, tagging, pushing, flashing
-and connected-load commissioning. Local preparation does not perform those actions.
-Do not publish any private commissioning artifact or pretend hosted CI ran before
+Local preparation may create reviewed local commits. Publishing, pushing, marking
+a release, flashing and connected-load commissioning require authorization for
+their actual effects; a passing check or local commit does not authorize them.
+Do not publish private commissioning artifacts or pretend hosted CI ran before
 an authorized upload. Verify public links and the hosted workflow after publication.
 
 An installed update must preserve the safe inactive board profile. A rollback to
