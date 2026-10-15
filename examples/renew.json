@@ -1,0 +1,15 @@
+{
+  "v": 1,
+  "id": "example-renew",
+  "device": "AA:BB:CC:DD:EE:FF",
+  "op": "renew",
+  "generation": "11111111111111111111111111111111",
+  "owner": "example-owner",
+  "treatment": 1,
+  "seq": 2,
+  "challenge": "44444444444444444444444444444444",
+  "mask": 15,
+  "ttl_ms": 900000,
+  "end_ms": 1800000,
+  "token": "33333333333333333333333333333333"
+}

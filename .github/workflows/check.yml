@@ -1,0 +1,24 @@
+name: Source checks and ESP8285 build
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned host dependencies outside the checkout
+        run: python -m pip install -r requirements-check.txt -r requirements-build.txt
+      - name: Offline tests and source review checks
+        run: python tools/check.py --sanitizers
+      - name: Fresh build with matching source bundle
+        run: >-
+          python tools/build.py
+          --work-dir "$RUNNER_TEMP/sonoff-work"
+          --output-dir "$RUNNER_TEMP/sonoff-artifacts"
+          --jobs 4

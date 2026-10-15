@@ -1,0 +1,19 @@
+# Build and cache data belongs outside every checkout. These are mistake guards,
+# not permission to store installation data inside this repository.
+.pio/
+.cache/
+build_output/
+dist/
+__pycache__/
+*.pyc
+*.bin
+*.bin.gz
+*.elf
+*.map
+*.log
+private/
+backups/
+captures/
+secrets.*
+.env
+.venv/

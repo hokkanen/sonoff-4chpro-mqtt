@@ -1,0 +1,41 @@
+sonoff-4chpro-mqtt
+Copyright (c) 2026 sonoff-4chpro-mqtt contributors
+SPDX-License-Identifier: GPL-3.0-or-later
+
+Project source, tests, tools and original documentation are distributed under
+GNU GPL version 3 or later; see LICENSE. They are provided without warranty.
+Keep this NOTICE and LICENSE with redistributed copies.
+
+Tasmota
+https://github.com/arendst/Tasmota
+Pinned source: v15.6.0, commit db3ae7e0276fdc38b7aeb241a2a8e33d8ffd6892.
+The focused upstream patch retains the copyright and GPL notices of Theo Arends
+and the Tasmota contributors. Tasmota and its modified source are GPL-3.0-or-later.
+Its bundled libraries retain their individual licenses and copyright notices in
+the integrity-checked upstream source archive; this repository does not replace
+those notices or claim ownership of those libraries.
+
+TasmotaPubSub / PubSubClient
+The patch adds inbound retained-delivery metadata access to the Tasmota-modified
+PubSubClient. The original PubSubClient is Copyright (c) 2008-2020 Nick O'Leary,
+under the MIT License; its full notice is retained in the upstream archive.
+https://github.com/knolleary/pubsubclient
+
+Build dependencies
+PlatformIO Core 6.1.19 is installed separately under its Apache-2.0 license.
+https://github.com/platformio/platformio-core/tree/v6.1.19
+The pinned Tasmota source selects its ESP8266 platform, Arduino framework and
+toolchain. Their own licenses and notices remain in those dependencies. Python,
+GCC, patch and optional sanitizer runtimes are separately installed host tools.
+
+Corresponding source
+tools/build.py preserves a source-only project archive and the exact verified
+Tasmota source archive alongside every firmware output. Together they contain
+the editable modifications, upstream source, build recipe and dependency pins.
+Distribute both source archives, their manifests, LICENSE and NOTICE with binary
+releases, and retain applicable dependency notices. A link to this repository
+alone is not a substitute for supplying the matching source bundle.
+
+SONOFF, Tasmota, Espressif and other product names belong to their respective
+owners. This independent project does not imply their endorsement or electrical
+certification. No source from the reference Shelly project is included.

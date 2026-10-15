@@ -1,0 +1,9 @@
+{
+  "tag": "v15.6.0",
+  "commit": "db3ae7e0276fdc38b7aeb241a2a8e33d8ffd6892",
+  "archiveUrl": "https://codeload.github.com/arendst/Tasmota/tar.gz/db3ae7e0276fdc38b7aeb241a2a8e33d8ffd6892",
+  "archiveSha256": "d7b4619fd5b8e688d47431ed0c0ba0bf7466f246a68594173ab41a43c6f4a0c5",
+  "archiveBytes": 54039945,
+  "platformioVersion": "6.1.19",
+  "environment": "sonoff4chpro-lease"
+}

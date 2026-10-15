@@ -1,0 +1,258 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sonoff 4CH Pro R3 MQTT lease request v1",
+  "description": "JSON data shape only. Wire parser additionally enforces 640 bytes, flat ASCII, no escapes, duplicate keys or trailing data; runtime enforces identity, freshness, ownership and deadlines.",
+  "definitions": {
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,40}(?![\\s\\S])",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$",
+      "minLength": 32,
+      "maxLength": 32
+    },
+    "device": {
+      "type": "string",
+      "pattern": "^([0-9A-F]{2}:){5}[0-9A-F]{2}$",
+      "minLength": 17,
+      "maxLength": 17
+    },
+    "counter": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "v",
+        "op",
+        "id",
+        "device"
+      ],
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "op": {
+          "const": "get"
+        },
+        "id": {
+          "$ref": "#/definitions/name"
+        },
+        "device": {
+          "$ref": "#/definitions/device"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "v",
+        "op",
+        "id",
+        "device"
+      ],
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "op": {
+          "const": "challenge"
+        },
+        "id": {
+          "$ref": "#/definitions/name"
+        },
+        "device": {
+          "$ref": "#/definitions/device"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "v",
+        "op",
+        "id",
+        "device",
+        "generation",
+        "owner",
+        "treatment",
+        "seq",
+        "challenge",
+        "mask",
+        "ttl_ms",
+        "end_ms"
+      ],
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "op": {
+          "const": "acquire"
+        },
+        "id": {
+          "$ref": "#/definitions/name"
+        },
+        "device": {
+          "$ref": "#/definitions/device"
+        },
+        "generation": {
+          "$ref": "#/definitions/nonce"
+        },
+        "owner": {
+          "$ref": "#/definitions/name"
+        },
+        "treatment": {
+          "$ref": "#/definitions/counter"
+        },
+        "seq": {
+          "type": "integer",
+          "const": 1
+        },
+        "challenge": {
+          "$ref": "#/definitions/nonce"
+        },
+        "mask": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15
+        },
+        "ttl_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 900000
+        },
+        "end_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "v",
+        "op",
+        "id",
+        "device",
+        "generation",
+        "owner",
+        "treatment",
+        "seq",
+        "challenge",
+        "mask",
+        "ttl_ms",
+        "end_ms",
+        "token"
+      ],
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "op": {
+          "const": "renew"
+        },
+        "id": {
+          "$ref": "#/definitions/name"
+        },
+        "device": {
+          "$ref": "#/definitions/device"
+        },
+        "generation": {
+          "$ref": "#/definitions/nonce"
+        },
+        "owner": {
+          "$ref": "#/definitions/name"
+        },
+        "treatment": {
+          "$ref": "#/definitions/counter"
+        },
+        "seq": {
+          "$ref": "#/definitions/counter"
+        },
+        "challenge": {
+          "$ref": "#/definitions/nonce"
+        },
+        "mask": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15
+        },
+        "ttl_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 900000
+        },
+        "end_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "token": {
+          "$ref": "#/definitions/nonce"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "v",
+        "op",
+        "id",
+        "device",
+        "generation",
+        "owner",
+        "treatment",
+        "seq",
+        "token"
+      ],
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "op": {
+          "const": "release"
+        },
+        "id": {
+          "$ref": "#/definitions/name"
+        },
+        "device": {
+          "$ref": "#/definitions/device"
+        },
+        "generation": {
+          "$ref": "#/definitions/nonce"
+        },
+        "owner": {
+          "$ref": "#/definitions/name"
+        },
+        "treatment": {
+          "$ref": "#/definitions/counter"
+        },
+        "seq": {
+          "$ref": "#/definitions/counter"
+        },
+        "token": {
+          "$ref": "#/definitions/nonce"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

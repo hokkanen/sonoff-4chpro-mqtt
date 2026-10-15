@@ -1,0 +1,11 @@
+{
+  "sha256": {
+    "firmware/overlay/platformio_override.ini": "07dc4f7b94c4f9987f9c6668061f3fea42c47bff434d39f687988db441369804",
+    "firmware/overlay/tasmota/include/sonoff_lease_core.h": "bc6685863d32d4d3f3a0160c52dfa8de23769a7b4bbc8054be708cb2209e878c",
+    "firmware/overlay/tasmota/include/sonoff_lease_gate.h": "485a883cae83e27fdcdb643c1db92b8b1a0842633be59343300fd9ab8cdafba5",
+    "firmware/overlay/tasmota/include/sonoff_lease_json.h": "c5fea6e0c5ee8916ceada041aef4c66c73e47bf002782b6defa928cb685ec84d",
+    "firmware/overlay/tasmota/tasmota_xdrv_driver/xdrv_123_sonoff_lease.ino": "b6ed88b398cfadbc7077ead9dced1dcc9d0e8fe4d81935a9265c48d35553054c",
+    "firmware/overlay/tasmota/user_config_override.h": "3abf50925102ac2d20352c6cd9186939cd160be63aac13639bd75c6de2cf88a9",
+    "firmware/patches/tasmota-v15.6.0.patch": "6fd8b340c90d0ff4d7fb4086b46cf00f600f0d2995fbfbbde5545b6f96f44a86"
+  }
+}

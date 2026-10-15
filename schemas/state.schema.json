@@ -1,0 +1,393 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sonoff 4CH Pro R3 MQTT reply and state v1",
+  "description": "Current GPIO snapshot is separate from historical acceptance. JSON Schema does not prove timing, identity, physical contact state or bitwise GPIO equality.",
+  "definitions": {
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,40}(?![\\s\\S])",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$",
+      "minLength": 32,
+      "maxLength": 32
+    },
+    "device": {
+      "type": "string",
+      "pattern": "^([0-9A-F]{2}:){5}[0-9A-F]{2}$",
+      "minLength": 17,
+      "maxLength": 17
+    }
+  },
+  "type": "object",
+  "required": [
+    "v",
+    "build",
+    "sketch_md5",
+    "kind",
+    "id",
+    "op",
+    "accepted",
+    "duplicate",
+    "code",
+    "device",
+    "generation",
+    "connected",
+    "active",
+    "mask",
+    "gpio_mask",
+    "gpio_match",
+    "state_evidence",
+    "board_ok",
+    "now_ms",
+    "lease_until_ms",
+    "end_ms",
+    "owner",
+    "treatment",
+    "seq",
+    "highwater",
+    "reason",
+    "max_lease_ms"
+  ],
+  "properties": {
+    "v": {
+      "type": "integer",
+      "const": 1
+    },
+    "build": {
+      "const": "sonoff4chpro-lease-v1"
+    },
+    "sketch_md5": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$",
+      "minLength": 32,
+      "maxLength": 32
+    },
+    "kind": {
+      "enum": [
+        "reply",
+        "state"
+      ]
+    },
+    "id": {
+      "anyOf": [
+        {
+          "const": ""
+        },
+        {
+          "$ref": "#/definitions/name"
+        }
+      ]
+    },
+    "op": {
+      "enum": [
+        "get",
+        "challenge",
+        "acquire",
+        "renew",
+        "release",
+        "invalid",
+        "state"
+      ]
+    },
+    "accepted": {
+      "type": "boolean"
+    },
+    "duplicate": {
+      "type": "boolean"
+    },
+    "code": {
+      "enum": [
+        "ok",
+        "duplicate",
+        "invalid-request",
+        "not-connected",
+        "wrong-generation",
+        "duplicate-mismatch",
+        "missing-challenge",
+        "stale-challenge",
+        "invalid-token",
+        "wrong-owner",
+        "wrong-treatment",
+        "retired-treatment",
+        "stale-sequence",
+        "busy",
+        "deadline-expired",
+        "end-changed",
+        "clock-fault",
+        "nonce-failure",
+        "retained-forbidden",
+        "wrong-device",
+        "hardware-fault",
+        "challenge-unavailable"
+      ]
+    },
+    "device": {
+      "$ref": "#/definitions/device"
+    },
+    "generation": {
+      "anyOf": [
+        {
+          "const": ""
+        },
+        {
+          "$ref": "#/definitions/nonce"
+        }
+      ]
+    },
+    "connected": {
+      "type": "boolean"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "mask": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 15
+    },
+    "gpio_mask": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 15
+    },
+    "gpio_match": {
+      "type": "boolean"
+    },
+    "state_evidence": {
+      "const": "gpio_output_readback"
+    },
+    "board_ok": {
+      "type": "boolean"
+    },
+    "now_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "lease_until_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "end_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "owner": {
+      "anyOf": [
+        {
+          "const": ""
+        },
+        {
+          "$ref": "#/definitions/name"
+        }
+      ]
+    },
+    "treatment": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "highwater": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "reason": {
+      "enum": [
+        "boot",
+        "connected",
+        "acquired",
+        "renewed",
+        "released",
+        "expired",
+        "disconnected",
+        "native-off",
+        "restart",
+        "clock-fault",
+        "nonce-failure"
+      ]
+    },
+    "max_lease_ms": {
+      "type": "integer",
+      "const": 900000
+    },
+    "token": {
+      "$ref": "#/definitions/nonce"
+    },
+    "challenge": {
+      "$ref": "#/definitions/nonce"
+    },
+    "issued_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "lifetime_ms": {
+      "type": "integer",
+      "const": 2000
+    }
+  },
+  "additionalProperties": false,
+  "dependencies": {
+    "challenge": [
+      "issued_ms",
+      "lifetime_ms"
+    ],
+    "issued_ms": [
+      "challenge",
+      "lifetime_ms"
+    ],
+    "lifetime_ms": [
+      "challenge",
+      "issued_ms"
+    ]
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "state"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "const": ""
+          },
+          "op": {
+            "const": "state"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "token"
+              ]
+            },
+            {
+              "required": [
+                "challenge"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "token"
+        ]
+      },
+      "then": {
+        "properties": {
+          "kind": {
+            "const": "reply"
+          },
+          "op": {
+            "const": "acquire"
+          },
+          "accepted": {
+            "const": true
+          },
+          "active": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "challenge"
+        ]
+      },
+      "then": {
+        "properties": {
+          "kind": {
+            "const": "reply"
+          },
+          "op": {
+            "const": "challenge"
+          },
+          "accepted": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "active": {
+            "const": true
+          }
+        },
+        "required": [
+          "active"
+        ]
+      },
+      "then": {
+        "properties": {
+          "mask": {
+            "minimum": 1
+          },
+          "lease_until_ms": {
+            "minimum": 1
+          },
+          "treatment": {
+            "minimum": 1
+          },
+          "seq": {
+            "minimum": 1
+          },
+          "owner": {
+            "$ref": "#/definitions/name"
+          },
+          "generation": {
+            "$ref": "#/definitions/nonce"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "active": {
+            "const": false
+          }
+        },
+        "required": [
+          "active"
+        ]
+      },
+      "then": {
+        "properties": {
+          "mask": {
+            "const": 0
+          },
+          "lease_until_ms": {
+            "const": 0
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "sonoff-4chpro-mqtt",
+  "version": "0.1.0",
+  "license": "GPL-3.0-or-later",
+  "protocolVersion": 1,
+  "buildIdentity": "sonoff4chpro-lease-v1"
+}

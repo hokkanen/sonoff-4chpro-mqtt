@@ -1,0 +1,234 @@
+--- a/lib/default/TasmotaPubSub/src/PubSubClient.cpp
++++ b/lib/default/TasmotaPubSub/src/PubSubClient.cpp
+@@ -539,11 +539,13 @@
+                         memmove(this->buffer+llen+2,this->buffer+llen+3,tl); /* move topic inside buffer 1 byte to front */
+                         this->buffer[llen+2+tl] = 0; /* end the topic as a 'C' string with \x00 */
+                         char *topic = (char*) this->buffer+llen+2;
++                        callbackMessageRetained = (this->buffer[0] & 0x01) != 0;
+                         // msgId only present for QOS>0
+                         if (qos == 1) {
+                             msgId = (this->buffer[llen+3+tl]<<8)+this->buffer[llen+3+tl+1];
+                             payload = this->buffer+llen+3+tl+2;
+                             callback(topic,payload,len-llen-3-tl-2);
++                            callbackMessageRetained = false;
+ 
+                             this->buffer[0] = MQTTPUBACK;
+                             this->buffer[1] = 2;
+@@ -557,6 +559,7 @@
+                         } else {
+                             payload = this->buffer+llen+3+tl;
+                             callback(topic,payload,len-llen-3-tl);
++                            callbackMessageRetained = false;
+                         }
+                     }
+                 } else if (type == MQTTPINGREQ) {
+--- a/lib/default/TasmotaPubSub/src/PubSubClient.h
++++ b/lib/default/TasmotaPubSub/src/PubSubClient.h
+@@ -109,6 +109,8 @@
+    unsigned long lastOutActivity = 0;
+    unsigned long lastInActivity = 0;
+    bool pingOutstanding = false;
++   // Snapshot before callback: publishing a reply can overwrite buffer[0].
++   bool callbackMessageRetained = false;
+    MQTT_CALLBACK_SIGNATURE;
+    uint32_t readPacket(uint8_t*);
+    boolean readByte(uint8_t * result);
+@@ -166,6 +168,8 @@
+ 
+    boolean setBufferSize(uint16_t size);
+    uint16_t getBufferSize() const;
++   // Meaningful only while the inbound message callback is executing.
++   bool messageRetained() const { return callbackMessageRetained; }
+ 
+    // Set the maximum accepted inbound packet size (total wire bytes). 0 disables the
+    // cap. When set, a larger declared packet closes the connection instead of being
+--- a/tasmota/include/tasmota_configurations.h
++++ b/tasmota/include/tasmota_configurations.h
+@@ -1158,4 +1158,11 @@
+   #define CODE_IMAGE_STR "tasmota"
+ #endif
+ 
++#ifdef USE_SONOFF_LEASE
++// This fixed relay appliance does not publish discovery or accept alternate
++// serial provisioning after commissioning. MQTT protocol v1 advertises itself.
++#undef USE_TASMOTA_DISCOVERY
++#undef USE_IMPROV
++#endif
++
+ #endif  // _TASMOTA_CONFIGURATIONS_H_
+--- a/tasmota/tasmota.ino
++++ b/tasmota/tasmota.ino
+@@ -31,6 +31,7 @@
+ #include "include/tasmota_globals.h"        // Function prototypes and global configuration
+ #include "include/i18n.h"                   // Language support configured by my_user_config.h
+ #include "include/tasmota_template.h"       // Hardware configuration
++#include "include/sonoff_lease_gate.h"      // Private fixed-board lease gate
+ 
+ // ------------------------------------------------------------------------------------------
+ // If IPv6 is not support by the underlying esp-idf, disable it
+@@ -409,6 +410,10 @@
+ #endif  // ESP32
+ 
+ void setup(void) {
++#ifdef USE_SONOFF_LEASE
++  // Before settings, GPIO configuration, or driver initialization can touch relays.
++  SonoffLeaseEarlyPinsOff();
++#endif
+ #ifdef ESP32
+ #ifdef CONFIG_IDF_TARGET_ESP32
+ 
+@@ -703,6 +708,9 @@
+   snprintf_P(TasmotaGlobal.mqtt_topic, sizeof(TasmotaGlobal.mqtt_topic), ResolveToken(TasmotaGlobal.mqtt_topic).c_str());
+ 
+   RtcInit();
++#ifdef USE_SONOFF_LEASE
++  SonoffLeaseFixedBoard();
++#endif
+   GpioInit();                    // FUNC_SETUP_RING1 -> FUNC_SETUP_RING2 -> FUNC_MODULE_INIT -> FUNC_LED_LINK
+   ButtonInit();                  // FUNC_ADD_BUTTON
+   SwitchInit();                  // FUNC_ADD_SWITCH
+--- a/tasmota/tasmota_support/support_command.ino
++++ b/tasmota/tasmota_support/support_command.ino
+@@ -381,6 +381,11 @@
+ // topicBuf: cmnd/DVES_83BB10_fb/power1  dataBuf: toggle  = Mqtt command using fallback topic
+ 
+ void CommandHandler(char* topicBuf, char* dataBuf, uint32_t data_len) {
++#ifdef USE_SONOFF_LEASE
++  // The native interface is maintenance/emergency-OFF only. This also covers
++  // deliberately blocking Restart test modes before they enter their loops.
++  SonoffLeaseNativeOff();
++#endif
+   SHOW_FREE_MEM(PSTR("CommandHandler"));
+ 
+   bool grpflg = false;
+@@ -482,6 +487,11 @@
+ #ifdef USE_SCRIPT_SUB_COMMAND
+     if (!Script_SubCmd()) {              // Allow override tasmota cmds
+ #endif  // USE_SCRIPT_SUB_COMMAND
++#ifdef USE_SONOFF_LEASE
++      if (SonoffLeaseBlockCommand(type, data_len)) {
++        Response_P(PSTR("{\"Command\":\"Blocked by fixed Sonoff lease firmware\"}"));
++      } else
++#endif
+       if (!DecodeCommand(kTasmotaCommands, TasmotaCommand, kTasmotaSynonyms)) {
+         if (!XdrvCall(FUNC_COMMAND)) {
+           if (!XsnsCall(FUNC_COMMAND)) {
+--- a/tasmota/tasmota_support/support_tasmota.ino
++++ b/tasmota/tasmota_support/support_tasmota.ino
+@@ -251,6 +251,12 @@
+ }
+ 
+ void SetDevicePower(power_t rpower, uint32_t source) {
++#ifdef USE_SONOFF_LEASE
++  // This build has one fixed GPIO writer. In particular, do not enter native
++  // always-ON, power-on-delay, blink, or alternate-module output paths.
++  SonoffLeaseNativePower(rpower, source);
++  return;
++#endif
+   if (TasmotaGlobal.power_on_delay) {
+     TasmotaGlobal.power_on_delay_state = rpower;
+     return;
+@@ -374,6 +380,12 @@
+ }
+ 
+ void SetAllPower(uint32_t state, uint32_t source) {
++#ifdef USE_SONOFF_LEASE
++  if ((POWER_OFF == state) || (POWER_OFF_FORCE == state) ||
++      (POWER_OFF_NO_STATE == state)) {
++    SonoffLeaseNativeOff();  // Emergency OFF must work even with PowerLock set.
++  }
++#endif
+ // state 0 = POWER_OFF = Relay Off
+ // state 1 = POWER_ON = Relay On (turn off after Settings->pulse_timer * 100 mSec if enabled)
+ // state 2 = POWER_TOGGLE = Toggle relay
+@@ -695,6 +707,12 @@
+ 
+ void ExecuteCommandPower(uint32_t device, uint32_t state, uint32_t source)
+ {
++#ifdef USE_SONOFF_LEASE
++  if ((POWER_OFF == state) || (POWER_OFF_FORCE == state) ||
++      (POWER_OFF_NO_STATE == state)) {
++    SonoffLeaseNativeOff();
++  }
++#endif
+ // device  = Relay number 1 and up
+ // state 0 = POWER_OFF = Relay Off
+ // state 1 = POWER_ON = Relay On (turn off after Settings->pulse_timer * 100 mSec if enabled)
+@@ -1394,6 +1412,9 @@
+   switch (TasmotaGlobal.state_250mS) {
+   case 0:                                                 // Every x.0 second
+     if (TasmotaGlobal.ota_state_flag && CommandsReady()) {
++#ifdef USE_SONOFF_LEASE
++      SonoffLeaseMqttDisconnected();
++#endif
+       TasmotaGlobal.ota_state_flag--;
+       if (2 == TasmotaGlobal.ota_state_flag) {
+ //#ifdef CONFIG_IDF_TARGET_ESP32C3
+--- a/tasmota/tasmota_support/support_wifi.ino
++++ b/tasmota/tasmota_support/support_wifi.ino
+@@ -1737,6 +1737,9 @@
+  * hardware-triggered wake up possible.
+  */
+ void EspRestart(void) {
++#ifdef USE_SONOFF_LEASE
++  SonoffLeaseMqttDisconnected();
++#endif
+   ResetPwm();
+   WifiShutdown(true);
+ #ifndef FIRMWARE_MINIMAL
+--- a/tasmota/tasmota_xdrv_driver/xdrv_01_9_webserver.ino
++++ b/tasmota/tasmota_xdrv_driver/xdrv_01_9_webserver.ino
+@@ -3506,6 +3506,9 @@
+ /*-------------------------------------------------------------------------------------------*/
+ 
+ void UploadServices(uint32_t start_service) {
++#ifdef USE_SONOFF_LEASE
++  if (!start_service) { SonoffLeaseMqttDisconnected(); }
++#endif
+   if (Web.upload_services_stopped != start_service) { return; }
+   Web.upload_services_stopped = !start_service;
+ 
+--- a/tasmota/tasmota_xdrv_driver/xdrv_02_9_mqtt.ino
++++ b/tasmota/tasmota_xdrv_driver/xdrv_02_9_mqtt.ino
+@@ -482,6 +482,9 @@
+ }
+ 
+ void MqttDisconnect(void) {
++#ifdef USE_SONOFF_LEASE
++  SonoffLeaseMqttDisconnected();
++#endif
+   if (MqttClient.connected()) {
+     MqttClient.disconnect();
+   }
+@@ -579,6 +582,11 @@
+ }
+ 
+ void MqttDataHandler(char* mqtt_topic, uint8_t* mqtt_data, unsigned int data_len) {
++#ifdef USE_SONOFF_LEASE
++  // Consume the dedicated protocol before native topic rewriting or logging.
++  if (SonoffLeaseMqttMessage(mqtt_topic, mqtt_data, data_len,
++                            MqttClient.messageRetained())) { return; }
++#endif
+   SHOW_FREE_MEM(PSTR("MqttDataHandler"));
+ 
+   // Do not allow more data than would be feasable within stack space
+@@ -995,6 +1003,9 @@
+ }
+ 
+ void MqttDisconnected(int state) {
++#ifdef USE_SONOFF_LEASE
++  SonoffLeaseMqttDisconnected();
++#endif
+   /*
+   // Possible values for state - PubSubClient.h
+   Tasmota MQTT_DNS_DISCONNECTED       -5
+@@ -1031,6 +1042,9 @@
+   if (Mqtt.allowed) {
+     AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_MQTT D_CONNECTED));
+     Mqtt.connected = true;
++#ifdef USE_SONOFF_LEASE
++    SonoffLeaseMqttConnected();
++#endif
+     Mqtt.retry_counter = 0;
+     Mqtt.retry_counter_multiplier = 1;
+     Mqtt.connect_count++;
